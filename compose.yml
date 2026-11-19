@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    image: tz-2:latest
+    container_name: tz-2
+    ports:
+      - "8000:8000"
+    # Dev mode: mount sources and auto-reload on changes.
+    # Remove the volume and the --reload flag for a production-like run.
+    volumes:
+      - ./src:/app/src
+    command: ["uvicorn", "tz_2.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    restart: unless-stopped
