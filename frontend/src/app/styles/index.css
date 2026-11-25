@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* Палитра по образцу docs/student-setting.html */
+@theme {
+  --color-primary: #5751e1;
+  --color-primary-hover: #4a44cc;
+  --color-accent: #ffc224;
+  --color-heading: #161439;
+  --color-body: #6d6c80;
+  --color-surface: #f8f8fc;
+  --color-line: #ebebf3;
+  --color-line-strong: #c9c9dd;
+}

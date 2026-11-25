@@ -43,6 +43,25 @@ wheels = [
 ]
 
 [[package]]
+name = "app"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "fastapi", extra = ["standard"] },
+    { name = "httpx" },
+    { name = "pydantic-settings" },
+    { name = "requests" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.165.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pydantic-settings", specifier = ">=2.16.3" },
+    { name = "requests", specifier = ">=2.34.2" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.10.23"
 source = { registry = "https://pypi.org/simple" }
@@ -1101,17 +1120,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/ff/50/0195198eb1d75bab7
 wheels = [
     { url = "https://files.pythonhosted.org/packages/de/0c/ea2544850a7c135e15033a5c7a8e7211136184b7ae63e2239d557c2b3019/typing_inspection-0.4.5-py3-none-any.whl", hash = "sha256:bc210535442b39e1bf2805e0c7a17dfd6a4ace760c84c7f7d16245d23a6b1c39", size = 14874, upload-time = "2026-11-04T14:13:22.616Z" },
 ]
-
-[[package]]
-name = "tz-2"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "fastapi", extra = ["standard"] },
-]
-
-[package.metadata]
-requires-dist = [{ name = "fastapi", extras = ["standard"], specifier = ">=0.165.0" }]
 
 [[package]]
 name = "urllib3"

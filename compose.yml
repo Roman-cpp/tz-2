@@ -5,9 +5,12 @@ services:
     container_name: tz-2
     ports:
       - "8000:8000"
+    # KT_API_KEY / KT_BASE_URL / KT_TIMEOUT берутся отсюда (см. .env.example).
+    env_file:
+      - .env
     # Dev mode: mount sources and auto-reload on changes.
     # Remove the volume and the --reload flag for a production-like run.
     volumes:
-      - ./src:/app/src
-    command: ["uvicorn", "tz_2.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+      - ./backend:/app/backend
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     restart: unless-stopped
