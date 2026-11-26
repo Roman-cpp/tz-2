@@ -1,0 +1,29 @@
+services:
+  web:
+    build: .
+    image: tz-2:latest
+    container_name: tz-2
+    ports:
+      - "8000:8000"
+    # KT_BASE_URL / KT_TIMEOUT берутся отсюда (см. .env.example).
+    # Ключ Keitaro приходит с клиента в заголовке X-Api-Key.
+    env_file:
+      - .env
+    # Dev mode: mount sources and auto-reload on changes.
+    # Remove the volume and the --reload flag for a production-like run.
+    volumes:
+      - ./backend:/app/backend
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    restart: unless-stopped
+
+  # Frontend: собранная статика + nginx, проксирующий API на web.
+  frontend:
+    build:
+      context: ./frontend
+    image: tz-2-frontend:latest
+    container_name: tz-2-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - web
+    restart: unless-stopped

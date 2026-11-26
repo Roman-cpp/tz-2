@@ -1,0 +1,91 @@
+# tz-2
+
+Простое FastAPI-приложение. Запускается в Docker через Docker Compose, управление — через `Makefile`.
+
+## Требования
+
+- Docker с плагином Compose (`docker compose version`)
+- GNU Make
+- Для локального запуска без Docker: Python 3.14 и [uv](https://docs.astral.sh/uv/)
+
+## Быстрый старт (Docker)
+
+1. Создайте файл `.env` в корне проекта (он обязателен для команд Makefile):
+
+   ```bash
+   cp .env.example .env
+   $EDITOR .env
+   ```
+
+   Переменные: `KT_BASE_URL` (адрес Admin API Keitaro), `KT_TIMEOUT`.
+
+2. Поднимите стек в фоне:
+
+   ```bash
+   make up
+   ```
+
+3. Приложение доступно на `http://localhost:8000`. Ключ Keitaro передаётся заголовком:
+
+   ```bash
+   curl -H "X-Api-Key: <ключ>" http://localhost:8000/companies
+   # [{"id":1,"name":"..."}]
+   ```
+
+Документация Swagger UI: `http://localhost:8000/docs`.
+
+### Ключ Keitaro
+
+Ключ хранится не на сервере: на фронтенде в шапке страницы есть поле «Ключ Keitaro». Введённое значение сохраняется в `localStorage` и уходит заголовком `X-Api-Key` вместе с каждым запросом. На бэкенде клиенты кешируются по ключу (до 32 штук), поэтому сессии и пул соединений переиспользуются.
+
+Запрос без заголовка `X-Api-Key` получает 401.
+
+## Фронтенд
+
+React + Vite + TypeScript, архитектура [Feature-Sliced Design](https://feature-sliced.design/) (`frontend/src`: `app`, `pages`, `entities`, `shared`).
+
+Страница `/` показывает список компаний и позволяет создавать, переименовывать и удалять их.
+Backend отдаёт JSON-массив объектов `{"id": 1, "name": "..."}`:
+
+| Метод | Путь | Что делает |
+| --- | --- | --- |
+| `GET` | `/companies` | список компаний |
+| `POST` | `/companies` | создать компанию вместе с первым стримом, 201 |
+| `GET` | `/companies/{id}` | одна компания, 404 если нет |
+| `PUT` | `/companies/{id}` | переименовать |
+| `DELETE` | `/companies/{id}` | удалить, 204 |
+| `GET` | `/companies/{id}/streams` | стримы компании |
+| `POST` | `/companies/{id}/streams` | создать стрим (`{"name": "..."}`), 201 |
+| `PUT` | `/streams/{id}` | переименовать стрим |
+| `DELETE` | `/streams/{id}` | удалить стрим, 204 |
+| `GET` | `/offers?search=` | оферы для автокомплита |
+
+### Создание компании со стримами
+
+`POST /companies` принимает имя компании, коды стран и оферы, а внутри делает последовательные запросы к Keitaro:
+
+```json
+{ "name": "test_rom", "country_codes": ["RU", "KZ"], "offer_ids": [18006, 18009] }
+```
+
+1. создаётся кампания (`POST /campaigns`);
+2. создаётся первый стрим (`POST /streams`) с фильтром страны (`name: "country"`, `mode: "accept"`) и редиректом на `https://www.google.com/` — он ловит трафик из указанных стран;
+3. создаётся второй стрим (`POST /streams`) с оферами, схема `landings` — он отдаёт всем остальным.
+
+Порядок важен: Keitaro обходит стримы по `position`, поэтому стрим с фильтром создаётся первым.
+
+Ответ — `{"company": {"id": 513, "name": "test_rom"}, "redirect_stream_id": 906, "fallback_stream_id": 907}`. Если коды стран не переданы, редирект-стрим не создаётся (`null`), если нет оферов — не создаётся стрим с оферами. Коды нормализуются в верхний регистр, дубли отбрасываются, некорректный код (не две латинские буквы) даёт 422.
+
+На фронте клик по компании открывает `/company/{id}` — карточку компании со списком стримов и кнопкой создания новой компании.
+
+Работа с данными на фронте идёт через стор `useCompaniesStore` (`entities/company/store`) на TanStack Query — см. `docs/architecture/store/store.md`.
+
+Запуск (нужен Node.js 20+ и запущенный backend на `:8000`):
+
+```bash
+cd frontend
+npm install
+npm run dev     # http://localhost:5173, запросы /companies проксируются на backend
+```
+
+Адрес backend можно переопределить: `VITE_BACKEND_URL=http://host:8000 npm run dev`.
