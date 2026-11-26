@@ -1,9 +1,70 @@
-import type { Stream } from '../../../entities/stream'
+import type { Stream, StreamFilter } from '../../../entities/stream'
 
 type StreamsTableProps = {
   streams: Stream[]
   onEdit: (stream: Stream) => void
   onDelete: (stream: Stream) => void
+}
+
+// Keitaro называет фильтр страны "country", а payload — список кодов (ISO-2).
+const COUNTRY_FILTER = 'country'
+
+const modeLabel: Record<string, string> = {
+  accept: 'только',
+  reject: 'кроме',
+}
+
+/** Чип страны: зелёный — пускаем, красный — исключаем. */
+function CountryChip({ code, mode }: { code: string; mode: string }) {
+  const isReject = mode === 'reject'
+
+  return (
+    <li
+      title={`${modeLabel[mode] ?? mode}: ${code}`}
+      className={`rounded-md px-2 py-0.5 text-xs font-semibold tracking-wide ${
+        isReject ? 'bg-red-50 text-red-600 line-through' : 'bg-emerald-50 text-emerald-700'
+      }`}
+    >
+      {code}
+    </li>
+  )
+}
+
+/** Фильтры стрима: коды стран, а для прочих фильтров — их имя и значения. */
+function FiltersCell({ filters }: { filters: StreamFilter[] }) {
+  if (filters.length === 0) {
+    return <span className="text-sm text-body">—</span>
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {filters.map((filter) => {
+        const isCountry = filter.name.toLowerCase() === COUNTRY_FILTER
+
+        return (
+          <div key={filter.id} className="flex flex-wrap items-center gap-1.5">
+            {!isCountry && (
+              <span className="text-xs text-body">
+                {filter.name} ({modeLabel[filter.mode] ?? filter.mode}):
+              </span>
+            )}
+            {isCountry && (
+              <span className="text-xs text-body">{modeLabel[filter.mode] ?? filter.mode}:</span>
+            )}
+            {filter.payload.length === 0 ? (
+              <span className="text-xs text-body">пусто</span>
+            ) : (
+              <ul className="flex flex-wrap gap-1">
+                {filter.payload.map((value) => (
+                  <CountryChip key={`${filter.id}-${value}`} code={value} mode={filter.mode} />
+                ))}
+              </ul>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 export function StreamsTable({ streams, onEdit, onDelete }: StreamsTableProps) {
@@ -28,6 +89,9 @@ export function StreamsTable({ streams, onEdit, onDelete }: StreamsTableProps) {
             </th>
             <th scope="col" className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wide text-body">
               Оферы
+            </th>
+            <th scope="col" className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wide text-body">
+              Фильтры
             </th>
             <th scope="col" className="px-6 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-body">
               Действия
@@ -54,6 +118,9 @@ export function StreamsTable({ streams, onEdit, onDelete }: StreamsTableProps) {
                     ))}
                   </ul>
                 )}
+              </td>
+              <td className="px-6 py-4">
+                <FiltersCell filters={stream.filters} />
               </td>
               <td className="px-6 py-4">
                 <div className="flex justify-end gap-2">

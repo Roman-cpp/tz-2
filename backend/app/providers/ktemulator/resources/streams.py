@@ -9,11 +9,19 @@ class StreamOffers(BaseModel):
 
     id: int = Field(alias="offer_id")
 
+class StreamFilter(BaseModel):
+    id: int
+    streamId: int = Field(alias="stream_id")
+    name: str
+    mode: str
+    payload: list[str]
+    oid: int
 
 class Streams(BaseModel):
     id: int
     name: str
     offers: list[StreamOffers] = []
+    filters: list[StreamFilter] = []
 
 
 class OffersPremiere(BaseModel):
@@ -27,6 +35,7 @@ class StreamsPremiere(BaseModel):
     id: int
     name: str
     offers: list[OffersPremiere] = []
+    filters: list[StreamFilter] = []
 
 
 class StreamsApi:

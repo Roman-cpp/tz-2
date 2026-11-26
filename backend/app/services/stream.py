@@ -14,7 +14,7 @@ def _to_premiere(api: KTEmulator, stream: Streams) -> StreamsPremiere:
         found = api.offers.find(offer.id)
         offers.append(OffersPremiere(id=offer.id, name=found.name))
 
-    return StreamsPremiere(id=stream.id, name=stream.name, offers=offers)
+    return StreamsPremiere(id=stream.id, name=stream.name, offers=offers, filters=stream.filters)
 
 
 def get(api: KTEmulator, company_id: int) -> list[StreamsPremiere]:
