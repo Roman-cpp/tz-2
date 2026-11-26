@@ -29,6 +29,20 @@ export function toStream(contract: StreamContract): Stream {
     contract.name,
     (contract.offers ?? []).map(toStreamOffer),
     (contract.filters ?? []).map(toStreamFilter),
+    {
+      campaignId: contract.campaign_id ?? null,
+      position: contract.position ?? null,
+      state: contract.state ?? null,
+      createdAt: contract.created_at ?? null,
+      type: contract.type ?? null,
+      actionType: contract.action_type ?? null,
+      actionPayload: contract.action_payload ?? null,
+      schema: contract.schema_name ?? null,
+      collectClicks: contract.collect_clicks ?? null,
+      filterOr: contract.filter_or ?? null,
+      weight: contract.weight ?? null,
+      offerSelection: contract.offer_selection ?? null,
+    },
   )
 }
 

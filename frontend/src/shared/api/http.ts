@@ -1,3 +1,5 @@
+import { authHeaders } from './api-key'
+
 async function readError(response: Response, url: string): Promise<string> {
   try {
     const body = (await response.json()) as { detail?: unknown }
@@ -9,7 +11,10 @@ async function readError(response: Response, url: string): Promise<string> {
 }
 
 export async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(url, { signal, headers: { Accept: 'application/json' } })
+  const response = await fetch(url, {
+    signal,
+    headers: { Accept: 'application/json', ...authHeaders() },
+  })
 
   if (!response.ok) throw new Error(await readError(response, url))
 
@@ -19,7 +24,7 @@ export async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> 
 async function sendJson<T>(url: string, method: 'POST' | 'PUT', payload: unknown): Promise<T> {
   const response = await fetch(url, {
     method,
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(payload),
   })
 
@@ -37,7 +42,7 @@ export function putJson<T>(url: string, payload: unknown): Promise<T> {
 }
 
 export async function deleteRequest(url: string): Promise<void> {
-  const response = await fetch(url, { method: 'DELETE' })
+  const response = await fetch(url, { method: 'DELETE', headers: authHeaders() })
 
   if (!response.ok) throw new Error(await readError(response, url))
 }

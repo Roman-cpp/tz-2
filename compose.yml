@@ -5,7 +5,8 @@ services:
     container_name: tz-2
     ports:
       - "8000:8000"
-    # KT_API_KEY / KT_BASE_URL / KT_TIMEOUT берутся отсюда (см. .env.example).
+    # KT_BASE_URL / KT_TIMEOUT берутся отсюда (см. .env.example).
+    # Ключ Keitaro приходит с клиента в заголовке X-Api-Key.
     env_file:
       - .env
     # Dev mode: mount sources and auto-reload on changes.

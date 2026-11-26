@@ -20,6 +20,21 @@ class StreamFilter(BaseModel):
 class Streams(BaseModel):
     id: int
     name: str
+    campaign_id: int | None = None
+    position: int | None = None
+    state: str | None = None
+    created_at: str | None = None
+    type: str | None = None
+    action_type: str | None = None
+    action_payload: str | None = None
+    # Keitaro зовёт поле "schema", но это имя метода BaseModel — держим алиасы
+    schema_name: str | None = Field(
+        default=None, validation_alias="schema", serialization_alias="schema"
+    )
+    collect_clicks: bool | None = None
+    filter_or: bool | None = None
+    weight: float | None = None
+    offer_selection: str | None = None
     offers: list[StreamOffers] = []
     filters: list[StreamFilter] = []
 
@@ -48,6 +63,18 @@ class StreamOfferInput(BaseModel):
 class StreamsPremiere(BaseModel):
     id: int
     name: str
+    campaign_id: int | None = None
+    position: int | None = None
+    state: str | None = None
+    created_at: str | None = None
+    type: str | None = None
+    action_type: str | None = None
+    action_payload: str | None = None
+    schema_name: str | None = None
+    collect_clicks: bool | None = None
+    filter_or: bool | None = None
+    weight: float | None = None
+    offer_selection: str | None = None
     offers: list[OffersPremiere] = []
     filters: list[StreamFilter] = []
 
@@ -62,6 +89,7 @@ class StreamsApi:
         return [Streams(**item) for item in data]
 
     def find(self, stream_id: int) -> Streams:
+        """Один стрим целиком — со всеми полями для карточки потока."""
         return Streams(**(self._c.request("GET", f"/streams/{stream_id}") or {}))
 
     def create(
@@ -97,6 +125,19 @@ class StreamsApi:
 
     def update(self, stream_id: int, name: str) -> None:
         self._c.request("PUT", f"/streams/{stream_id}", json={"name": name})
+
+    def update_offers(self, stream_id: int, offers: list[StreamOfferInput]) -> Streams:
+        """Заменяет набор оферов стрима.
+
+        Keitaro принимает полный список: добавление, удаление и очистка —
+        это один PUT. Пустой список снимает оферы и возвращает схему
+        в "redirect", иначе стрим остался бы в "landings" без оферов.
+        """
+        body: dict = {"offers": [item.model_dump() for item in offers]}
+        body["schema"] = "landings" if offers else "redirect"
+
+        updated = self._c.request("PUT", f"/streams/{stream_id}", json=body) or {}
+        return Streams(**updated)
 
     def delete(self, stream_id: int) -> None:
         self._c.request("DELETE", f"/streams/{stream_id}")

@@ -2,6 +2,7 @@ import type { RouteObject } from 'react-router'
 import { CompaniesPage } from '../../pages/companies/ui/CompaniesPage'
 import { CompanyPage } from '../../pages/company/ui/CompanyPage'
 import { NotFoundPage } from '../../pages/not-found/ui/NotFoundPage'
+import { StreamPage } from '../../pages/stream/ui/StreamPage'
 import { DashboardLayout } from '../../widgets/dashboard-layout/ui/DashboardLayout'
 
 // Конфигурация маршрутов в виде объекта: добавить страницу = добавить запись.
@@ -17,6 +18,10 @@ export const routes: RouteObject[] = [
       {
         path: '/company/:companyId',
         element: <CompanyPage />,
+      },
+      {
+        path: '/stream/:streamId',
+        element: <StreamPage />,
       },
       {
         path: '*',

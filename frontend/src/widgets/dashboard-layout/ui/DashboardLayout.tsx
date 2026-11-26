@@ -1,9 +1,16 @@
 import { NavLink, Outlet } from 'react-router'
+import { ApiKeyInput } from '../../api-key-input'
 
 // Общий макет: фоновая подложка, боковое меню слева и содержимое страницы справа.
 export function DashboardLayout() {
   return (
     <div className="min-h-screen bg-surface bg-[url(/dashboard-bg.jpg)] bg-cover bg-center bg-no-repeat">
+      <header className="border-b border-line bg-white/90 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 py-3">
+          <ApiKeyInput />
+        </div>
+      </header>
+
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 md:flex-row">
         <aside className="w-full shrink-0 md:w-64">
           <div className="rounded-2xl bg-white p-6 shadow-sm">

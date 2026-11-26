@@ -80,3 +80,14 @@ class StreamCreate(BaseModel):
     @classmethod
     def strip_and_require_name(cls, value: str) -> str:
         return _strip_required_name(value)
+
+
+class StreamOffersUpdate(BaseModel):
+    """Новый набор оферов потока: полный список, пустой — снять все."""
+
+    offer_ids: list[int] = Field(default_factory=list)
+
+    @field_validator("offer_ids")
+    @classmethod
+    def unique_offer_ids(cls, value: list[int]) -> list[int]:
+        return list(dict.fromkeys(value))

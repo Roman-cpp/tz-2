@@ -13,5 +13,7 @@ def register(app):
     app.add_api_route("/companies/{company_id}/streams", streams.index, methods=["GET"], status_code=200)
     app.add_api_route("/companies/{company_id}/streams", streams.create, methods=["POST"], status_code=201)
 
+    app.add_api_route("/streams/{stream_id}", streams.find, methods=["GET"], status_code=200)
     app.add_api_route("/streams/{stream_id}", streams.update, methods=["PUT"])
+    app.add_api_route("/streams/{stream_id}/offers", streams.update_offers, methods=["PUT"])
     app.add_api_route("/streams/{stream_id}", streams.delete, methods=["DELETE"], status_code=204)

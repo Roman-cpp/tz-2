@@ -14,7 +14,6 @@ class Settings(BaseSettings):
     )
 
     base_url: str = "https://keitaro-for-tests.etolegko.com/admin_api/v1"
-    api_key: str
     timeout: float = 10.0
 
 

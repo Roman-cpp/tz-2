@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import type { Stream, StreamFilter } from '../../../entities/stream'
 
 type StreamsTableProps = {
@@ -102,7 +103,15 @@ export function StreamsTable({ streams, onEdit, onDelete }: StreamsTableProps) {
           {streams.map((stream) => (
             <tr key={stream.id} className="transition hover:bg-surface">
               <td className="px-6 py-4 text-sm text-body">{stream.id}</td>
-              <td className="px-6 py-4 font-medium text-heading">{stream.name}</td>
+              <td className="px-6 py-4 font-medium text-heading">
+                {/* Клик по названию открывает карточку потока на отдельной странице */}
+                <Link
+                  to={`/stream/${stream.id}`}
+                  className="underline-offset-4 transition hover:text-primary hover:underline"
+                >
+                  {stream.name}
+                </Link>
+              </td>
               <td className="px-6 py-4">
                 {stream.offers.length === 0 ? (
                   <span className="text-sm text-body">—</span>
