@@ -35,8 +35,7 @@ export function CompanyFormModal({ mode, company, onClose, onSaved }: CompanyFor
   const [countryCodes, setCountryCodes] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
 
-  // Оферы выбираются в форме, но пока не отправляются: контракт создания
-  // компании их не принимает.
+  // Оферы выбираются в форме и уходят вместе с компанией: backend создаёт стрим.
   const [offerSearch, setOfferSearch] = useState('')
   const [selectedOffers, setSelectedOffers] = useState<{ id: number; label: string }[]>([])
   const { offers, isOffersLoading, isOffersError, offersError } = useOffersStore({ search: offerSearch })
@@ -68,7 +67,11 @@ export function CompanyFormModal({ mode, company, onClose, onSaved }: CompanyFor
       const saved =
         isEdit && company
           ? await updateCompany({ id: company.id, dto: { name: trimmed } })
-          : await createCompany({ name: trimmed })
+          : await createCompany({
+              name: trimmed,
+              countryCodes,
+              offerIds: selectedOffers.map((offer) => offer.id),
+            })
       onSaved(saved)
     } catch (cause: unknown) {
       setError(cause instanceof Error ? cause.message : 'Не удалось сохранить компанию')

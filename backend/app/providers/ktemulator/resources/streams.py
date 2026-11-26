@@ -31,6 +31,20 @@ class OffersPremiere(BaseModel):
     name: str
 
 
+class StreamFilterInput(BaseModel):
+    """Фильтр в теле запроса: Keitaro сам присвоит id и oid."""
+
+    name: str
+    mode: str = "accept"
+    payload: list[str] = Field(default_factory=list)
+
+
+class StreamOfferInput(BaseModel):
+    """Офер в теле запроса: распределение share Keitaro считает сам."""
+
+    offer_id: int
+
+
 class StreamsPremiere(BaseModel):
     id: int
     name: str
@@ -50,9 +64,30 @@ class StreamsApi:
     def find(self, stream_id: int) -> Streams:
         return Streams(**(self._c.request("GET", f"/streams/{stream_id}") or {}))
 
-    def create(self, name: str, company_id: int) -> Streams:
-        """Создаёт стрим. Keitaro отвечает {"id": ...}, иногда с name."""
-        created = self._c.request("POST", "/streams", json={"name": name, "campaign_id": company_id}) or {}
+    def create(
+        self,
+        name: str,
+        company_id: int,
+        filters: list[StreamFilterInput] | None = None,
+        offers: list[StreamOfferInput] | None = None,
+    ) -> Streams:
+        """Создаёт стрим сразу с фильтрами и оферами — одним запросом.
+
+        Keitaro отвечает {"id": ...}, иногда с name. Пустые списки в тело
+        не кладём: иначе схема остаётся "redirect" и оферы игнорируются.
+        """
+        body: dict = {"name": name, "campaign_id": company_id}
+        if filters:
+            body["filters"] = [item.model_dump() for item in filters]
+        if offers:
+            body["offers"] = [item.model_dump() for item in offers]
+            # Схема "landings" — стрим распределяет трафик между оферами
+            body["schema"] = "landings"
+
+        created = self._c.request("POST", "/streams", json=body) or {}
+
+        print("--------- create copmpany -----")
+        print(body)
         if isinstance(created, list):
             created = created[0] if created else {}
         created.setdefault("name", name)

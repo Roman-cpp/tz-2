@@ -4,7 +4,20 @@ export interface CompanyContract {
   name: string
 }
 
-/** Тело запроса на создание/обновление компании. */
+/** Компания вместе с созданным стримом: ответ POST /companies. */
+export interface CompanyWithStreamContract {
+  company: CompanyContract
+  stream_id: number | null
+}
+
+/** Тело запроса на создание компании: сразу имя, коды стран и оферы. */
 export interface CompanyPayloadContract {
+  name: string
+  country_codes: string[]
+  offer_ids: number[]
+}
+
+/** Тело запроса на обновление компании — пока меняется только имя. */
+export interface CompanyUpdatePayloadContract {
   name: string
 }

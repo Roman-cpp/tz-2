@@ -2,10 +2,11 @@ from fastapi import Response
 
 from app.pkg.deps import KtDep
 from app.pkg.error import not_found_resource, upstream_error
-from app.pkg.schemas import CompanyCreate
+from app.pkg.schemas import CompanyCreate, CompanyWithStream as CompanyWithStreamCreate
 from app.providers.ktemulator import ApiError
 from app.providers.ktemulator.resources.companies import Companies
 from app.services import company
+from app.services.company import CompanyWithStream
 
 
 def _map_error(error: ApiError):
@@ -29,9 +30,15 @@ def find(company_id: int, api: KtDep) -> Companies:
         _map_error(error)
 
 
-def create(payload: CompanyCreate, api: KtDep) -> Companies:
+def create(payload: CompanyWithStreamCreate, api: KtDep) -> CompanyWithStream:
+    """Компания + первый стрим: имя, коды стран и оферы в одном запросе."""
     try:
-        return company.create(api, payload.name)
+        return company.create_with_stream(
+            api,
+            payload.name,
+            payload.country_codes,
+            payload.offer_ids,
+        )
     except ApiError as error:
         _map_error(error)
 

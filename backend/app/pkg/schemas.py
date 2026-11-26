@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 def _strip_required_name(value: str) -> str:
@@ -10,6 +10,32 @@ def _strip_required_name(value: str) -> str:
     return name
 
 
+COUNTRY_CODE_LENGTH = 2
+MAX_COUNTRY_CODES = 250
+
+
+def _normalize_countries(values: list[str]) -> list[str]:
+    """Коды стран — ISO 3166-1 alpha-2; приводим к верхнему регистру и убираем дубли."""
+    result: list[str] = []
+    seen: set[str] = set()
+
+    for value in values:
+        code = value.strip().upper()
+        if not code:
+            continue
+        if len(code) != COUNTRY_CODE_LENGTH or not code.isalpha() or not code.isascii():
+            raise ValueError(f"Код страны должен состоять из двух латинских букв: {value!r}")
+        if code in seen:
+            continue
+        seen.add(code)
+        result.append(code)
+
+    if len(result) > MAX_COUNTRY_CODES:
+        raise ValueError(f"Слишком много кодов стран: максимум {MAX_COUNTRY_CODES}")
+
+    return result
+
+
 class CompanyCreate(BaseModel):
     name: str = ...
 
@@ -17,6 +43,34 @@ class CompanyCreate(BaseModel):
     @classmethod
     def strip_and_require_name(cls, value: str) -> str:
         return _strip_required_name(value)
+
+
+class CompanyWithStream(BaseModel):
+    """Создание компании вместе с первым стримом.
+
+    Компания и стрим создаются двумя запросами к Keitaro: сначала кампания,
+    затем стрим с фильтром страны и оферами.
+    """
+
+    name: str = ...
+    country_codes: list[str] = Field(default_factory=list)
+    offer_ids: list[int] = Field(default_factory=list)
+
+    @field_validator("name")
+    @classmethod
+    def strip_and_require_name(cls, value: str) -> str:
+        return _strip_required_name(value)
+
+    @field_validator("country_codes")
+    @classmethod
+    def normalize_country_codes(cls, value: list[str]) -> list[str]:
+        return _normalize_countries(value)
+
+    @field_validator("offer_ids")
+    @classmethod
+    def unique_offer_ids(cls, value: list[int]) -> list[int]:
+        # Порядок важен: Keitaro распределяет share в порядке добавления
+        return list(dict.fromkeys(value))
 
 
 class StreamCreate(BaseModel):
