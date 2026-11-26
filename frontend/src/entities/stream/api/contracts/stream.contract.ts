@@ -12,6 +12,7 @@ export interface StreamFilterContract {
 export interface StreamOfferContract {
   id: number
   name: string
+  share?: number | null
 }
 
 /** Как стрим приходит от backend. */

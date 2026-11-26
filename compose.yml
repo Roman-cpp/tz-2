@@ -15,3 +15,15 @@ services:
       - ./backend:/app/backend
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     restart: unless-stopped
+
+  # Frontend: собранная статика + nginx, проксирующий API на web.
+  frontend:
+    build:
+      context: ./frontend
+    image: tz-2-frontend:latest
+    container_name: tz-2-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - web
+    restart: unless-stopped

@@ -68,7 +68,7 @@ function FiltersCell({ filters }: { filters: StreamFilter[] }) {
   )
 }
 
-export function StreamsTable({ streams, onEdit, onDelete }: StreamsTableProps) {
+export function StreamsTable({ streams, onDelete }: StreamsTableProps) {
   if (streams.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-line-strong px-6 py-10 text-center text-body">
@@ -133,13 +133,6 @@ export function StreamsTable({ streams, onEdit, onDelete }: StreamsTableProps) {
               </td>
               <td className="px-6 py-4">
                 <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onEdit(stream)}
-                    className="rounded-lg border border-line-strong px-3.5 py-1.5 text-sm font-medium text-heading transition hover:bg-surface"
-                  >
-                    Редактировать
-                  </button>
                   <button
                     type="button"
                     onClick={() => onDelete(stream)}

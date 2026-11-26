@@ -1,7 +1,8 @@
-/** Офер в составе стрима: id и имя, полученное из справочника оферов. */
+/** Офер в составе стрима: id, имя и доля трафика в процентах. */
 export interface StreamOffer {
   id: number
   name: string
+  share: number | null
 }
 
 /**

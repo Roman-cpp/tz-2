@@ -2,12 +2,14 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class StreamOffers(BaseModel):
-    """Офер в составе стрима: Keitaro отдаёт ссылку с id и статусом, без имени."""
+    """Офер в составе стрима: Keitaro отдаёт ссылку с id, статусом и долей трафика."""
 
     # Keitaro присылает offer_id, но в коде модель удобнее собирать по id
     model_config = ConfigDict(populate_by_name=True)
 
     id: int = Field(alias="offer_id")
+    # Доля трафика стрима в процентах, которую Keitaro распределяет между оферами
+    share: int | None = None
 
 class StreamFilter(BaseModel):
     id: int
@@ -44,6 +46,8 @@ class OffersPremiere(BaseModel):
 
     id: int
     name: str
+    # Доля трафика стрима в процентах, которую Keitaro распределяет между оферами
+    share: int | None = None
 
 
 class StreamFilterInput(BaseModel):

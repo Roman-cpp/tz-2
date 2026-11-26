@@ -11,7 +11,7 @@ import {
 } from '../../model/stream.entity'
 
 function toStreamOffer(contract: StreamOfferContract): StreamOffer {
-  return { id: contract.id, name: contract.name.trim() }
+  return { id: contract.id, name: contract.name.trim(), share: contract.share ?? null }
 }
 
 function toStreamFilter(contract: StreamFilterContract): StreamFilter {

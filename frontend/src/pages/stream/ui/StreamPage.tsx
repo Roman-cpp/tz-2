@@ -121,6 +121,14 @@ function OffersSection({
                 <span className="rounded-full bg-surface px-2 py-0.5 text-xs text-body">
                   ID {offer.id}
                 </span>
+                {offer.share !== null && (
+                  <span
+                    className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                    title="Доля трафика потока, которую получает офер"
+                  >
+                    {offer.share}%
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => remove(offer.id)}
