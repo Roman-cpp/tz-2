@@ -4,10 +4,13 @@ export interface CompanyContract {
   name: string
 }
 
-/** Компания вместе с созданным стримом: ответ POST /companies. */
-export interface CompanyWithStreamContract {
+/** Компания со стримами, созданными вместе с ней: ответ POST /companies. */
+export interface CompanyWithStreamsContract {
   company: CompanyContract
-  stream_id: number | null
+  /** Стрим с фильтром страны, уводящий трафик на редирект (Google). */
+  redirect_stream_id: number | null
+  /** Стрим с оферами для всех остальных стран. */
+  fallback_stream_id: number | null
 }
 
 /** Тело запроса на создание компании: сразу имя, коды стран и оферы. */

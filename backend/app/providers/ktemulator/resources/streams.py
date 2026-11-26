@@ -70,11 +70,13 @@ class StreamsApi:
         company_id: int,
         filters: list[StreamFilterInput] | None = None,
         offers: list[StreamOfferInput] | None = None,
+        action_payload: str | None = None,
     ) -> Streams:
-        """Создаёт стрим сразу с фильтрами и оферами — одним запросом.
+        """Создаёт стрим сразу с фильтрами, оферами или редиректом — одним запросом.
 
-        Keitaro отвечает {"id": ...}, иногда с name. Пустые списки в тело
-        не кладём: иначе схема остаётся "redirect" и оферы игнорируются.
+        Пустые списки в тело не кладём: иначе схема остаётся "redirect"
+        и оферы игнорируются. `action_payload` задаёт адрес редиректа
+        для стрима без оферов.
         """
         body: dict = {"name": name, "campaign_id": company_id}
         if filters:
@@ -83,11 +85,11 @@ class StreamsApi:
             body["offers"] = [item.model_dump() for item in offers]
             # Схема "landings" — стрим распределяет трафик между оферами
             body["schema"] = "landings"
+        elif action_payload:
+            body["action_type"] = "http"
+            body["action_payload"] = action_payload
 
         created = self._c.request("POST", "/streams", json=body) or {}
-
-        print("--------- create copmpany -----")
-        print(body)
         if isinstance(created, list):
             created = created[0] if created else {}
         created.setdefault("name", name)

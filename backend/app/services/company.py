@@ -9,12 +9,20 @@ from app.providers.ktemulator.resources.streams import (
 
 COUNTRY_FILTER = "country"
 
+# Куда уводим трафик из указанных стран — мимо оферов.
+DEFAULT_REDIRECT_URL = "https://www.google.com/"
 
-class CompanyWithStream(BaseModel):
-    """Результат создания компании вместе с первым стримом."""
+
+class CompanyWithStreams(BaseModel):
+    """Результат создания компании вместе со стримами.
+
+    `redirect_stream_id` — первый стрим (фильтр страны → редирект),
+    `fallback_stream_id` — второй (оферы для всех остальных).
+    """
 
     company: Companies
-    stream_id: int | None = None
+    redirect_stream_id: int | None = None
+    fallback_stream_id: int | None = None
 
 
 def get(api: KTEmulator) -> list[Companies]:
@@ -40,25 +48,50 @@ def _stream_filters(country_codes: list[str]) -> list[StreamFilterInput]:
     return [StreamFilterInput(name=COUNTRY_FILTER, mode="accept", payload=country_codes)]
 
 
-def create_with_stream(
+def create_with_streams(
     api: KTEmulator,
     name: str,
     country_codes: list[str],
     offer_ids: list[int],
-) -> CompanyWithStream:
-    """Создаёт компанию, затем стрим с фильтром страны и оферами.
+    redirect_url: str = DEFAULT_REDIRECT_URL,
+) -> CompanyWithStreams:
+    """Создаёт компанию и два стрима под неё.
 
-    Два запроса к Keitaro: кампания, потом стрим. Если стрим не создался,
-    кампания остаётся — откатывать её молча не будем, но сообщим об ошибке.
+    Порядок важен: Keitaro обходит стримы по position, поэтому первый
+    (с фильтром страны и редиректом) перехватывает трафик из указанных
+    стран, а второй отдаёт всех остальных на оферы.
+
+    Запросы идут последовательно: сначала кампания, затем стримы —
+    им нужен campaign_id. Если второй стрим не создался, первый и
+    кампания остаются: молча откатывать данные на внешнем сервисе
+    не будем, клиент получит ошибку.
     """
     company = api.companies.create(name)
 
+    redirect_stream_id: int | None = None
+    fallback_stream_id: int | None = None
+
     filters = _stream_filters(country_codes)
+    if filters:
+        redirect_stream = api.streams.create(
+            name=f"{name} — редирект по странам",
+            company_id=company.id,
+            filters=filters,
+            action_payload=redirect_url,
+        )
+        redirect_stream_id = redirect_stream.id
+
     offers = [StreamOfferInput(offer_id=offer_id) for offer_id in offer_ids]
+    if offers:
+        fallback_stream = api.streams.create(
+            name=f"{name} — оферы",
+            company_id=company.id,
+            offers=offers,
+        )
+        fallback_stream_id = fallback_stream.id
 
-    # Без фильтров и оферов стрим не нужен: пустой стрим только мешает кампании
-    if not filters and not offers:
-        return CompanyWithStream(company=company)
-
-    stream = api.streams.create(name=name, company_id=company.id, filters=filters, offers=offers)
-    return CompanyWithStream(company=company, stream_id=stream.id)
+    return CompanyWithStreams(
+        company=company,
+        redirect_stream_id=redirect_stream_id,
+        fallback_stream_id=fallback_stream_id,
+    )
