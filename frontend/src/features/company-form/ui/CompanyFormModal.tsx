@@ -3,12 +3,26 @@ import { useCompaniesStore, type Company } from '../../../entities/company'
 import { useOffersStore } from '../../../entities/offer'
 import { Combobox } from '../../../shared/ui/combobox'
 import { Modal } from '../../../shared/ui/modal/Modal'
+import { TagInput } from '../../../shared/ui/tag-input'
 
 type CompanyFormModalProps = {
   mode: 'create' | 'edit'
   company?: Company
   onClose: () => void
   onSaved: (company: Company) => void
+}
+
+/** Код страны — ISO 3166-1 alpha-2: две латинские буквы. */
+const COUNTRY_CODE_RE = /^[A-Za-z]{2}$/
+
+/** Приводим код к каноничному виду: без пробелов и в верхнем регистре. */
+const normalizeCountry = (raw: string) => raw.trim().toUpperCase()
+
+function validateCountry(code: string): string | null {
+  if (!COUNTRY_CODE_RE.test(code)) {
+    return 'Код страны — две латинские буквы, например RU'
+  }
+  return null
 }
 
 // Форма создания и редактирования компании. Работает через стор сущности.
@@ -18,6 +32,7 @@ export function CompanyFormModal({ mode, company, onClose, onSaved }: CompanyFor
   const isSaving = isCreating || isUpdating
 
   const [name, setName] = useState(company?.name ?? '')
+  const [countryCodes, setCountryCodes] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
 
   // Оферы выбираются в форме, но пока не отправляются: контракт создания
@@ -100,6 +115,22 @@ export function CompanyFormModal({ mode, company, onClose, onSaved }: CompanyFor
             autoFocus
             placeholder="Например, ООО «Ромашка»"
             className="w-full rounded-lg border border-line-strong px-4 py-3 text-heading outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
+
+        <div className="mt-5 flex flex-col gap-2">
+          <span className="text-sm font-medium text-heading">Коды стран</span>
+          <TagInput
+            id="company-countries"
+            value={countryCodes}
+            onChange={setCountryCodes}
+            normalize={normalizeCountry}
+            validate={validateCountry}
+            maxLength={2}
+            placeholder="Например, RU — Enter или запятая"
+            emptyText="Коды стран не добавлены"
+            addLabel="Добавить"
+            disabled={isSaving}
           />
         </div>
 
